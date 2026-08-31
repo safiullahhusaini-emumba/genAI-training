@@ -1,0 +1,22 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# LLM
+groq==0.11.0
+httpx<0.28  # groq 0.11.0 passes `proxies` to httpx.Client, removed in httpx 0.28
+python-dotenv==1.0.1
+
+# retrieval
+sentence-transformers==3.0.1
+torch==2.13.0+cpu              # pinned: unpinned, a rebuild silently picks up a new major. The +cpu build is the whole reason for the --extra-index-url above
+numpy==1.26.4                 # pins this project to Python <= 3.12 (qdrant-client/fastembed need numpy>=2.1 on 3.13+)
+qdrant-client==1.19.0
+fastembed==0.8.0              # BM25 sparse encoder ("Qdrant/bm25"); IDF applied server-side
+
+# ingestion
+requests==2.32.3
+trafilatura==1.12.2
+
+# UI
+streamlit==1.38.0
+markdown-it-py==4.2.0          # app.py renders the answer markdown itself; arrives via streamlit->rich anyway, pinned here because we import it directly
+pillow==10.4.0                 # narrow window: streamlit 1.38 wants <11, fastembed 0.8 wants >=10.3

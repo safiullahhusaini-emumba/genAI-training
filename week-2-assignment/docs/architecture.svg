@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 620" width="1040" height="620" font-family="Archivo, Helvetica, Arial, sans-serif">
+  <rect width="1040" height="620" fill="#EDF1F4"/>
+
+  <style>
+    .lbl   { font-size: 13px; fill: #0E1A22; font-weight: 600; }
+    .sub   { font-size: 10.5px; fill: #4A5C68; font-family: 'IBM Plex Mono', monospace; }
+    .eyebrow { font-size: 10px; fill: #4A5C68; font-family: 'IBM Plex Mono', monospace; letter-spacing: 1.6px; }
+    .box   { fill: #FFFFFF; stroke: #C9D4DB; stroke-width: 1.2; }
+    .llm   { fill: #FFFFFF; stroke: #0B6E6E; stroke-width: 1.6; }
+    .flow  { stroke: #0E1A22; stroke-width: 1.4; fill: none; marker-end: url(#a); }
+    .alt   { stroke: #9A6410; stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; marker-end: url(#b); }
+    .title { font-size: 19px; font-weight: 700; fill: #0E1A22; }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#0E1A22"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9A6410"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="42" class="title">Preference-Aware Travel RAG</text>
+  <line x1="40" y1="54" x2="1000" y2="54" stroke="#0E1A22" stroke-width="2"/>
+  <text x="40" y="72" class="eyebrow">TEAL BORDER = GROQ LLM CALL   ·   DASHED = ONE RELAXED RETRY</text>
+
+  <!-- ============ OFFLINE ============ -->
+  <text x="40" y="112" class="eyebrow">OFFLINE — docker compose up -d, then build_index.py</text>
+  <rect x="40" y="124" width="150" height="58" class="box"/>
+  <text x="56" y="148" class="lbl">Travel URLs</text>
+  <text x="56" y="165" class="sub">wikivoyage seed list</text>
+
+  <rect x="222" y="124" width="150" height="58" class="box"/>
+  <text x="238" y="148" class="lbl">Fetch + clean</text>
+  <text x="238" y="165" class="sub">trafilatura, cached</text>
+
+  <rect x="404" y="124" width="150" height="58" class="box"/>
+  <text x="420" y="148" class="lbl">Paragraph chunks</text>
+  <text x="420" y="165" class="sub">220–1100 chars</text>
+
+  <rect x="586" y="124" width="150" height="76" class="llm"/>
+  <text x="602" y="142" class="lbl">Tag metadata</text>
+  <text x="602" y="156" class="sub">url · city inherited</text>
+  <text x="602" y="170" class="sub">category · price:</text>
+  <text x="602" y="184" class="sub">gpt-oss-20b, cached</text>
+
+  <rect x="768" y="124" width="150" height="76" class="llm" stroke="#C9D4DB"/>
+  <text x="784" y="142" class="lbl">bge-small-en-v1.5</text>
+  <text x="784" y="156" class="sub">384-d, normalised</text>
+  <text x="784" y="170" class="sub">passage encoding</text>
+  <text x="784" y="184" class="sub">+ tf sparse vector</text>
+
+  <path d="M190 153 H218" class="flow"/>
+  <path d="M372 153 H400" class="flow"/>
+  <path d="M554 153 H582" class="flow"/>
+  <path d="M736 153 H764" class="flow"/>
+
+  <!-- index -->
+  <rect x="586" y="222" width="332" height="76" class="box"/>
+  <text x="602" y="246" class="lbl">Qdrant collection · travel_chunks</text>
+  <text x="602" y="263" class="sub">dense 384-d cosine  ·  sparse bm25 (idf)</text>
+  <text x="602" y="279" class="sub">payload index: city · category · price</text>
+  <path d="M843 200 V218" class="flow"/>
+
+  <line x1="40" y1="310" x2="1000" y2="310" stroke="#C9D4DB" stroke-width="1"/>
+
+  <!-- ============ ONLINE ============ -->
+  <text x="40" y="340" class="eyebrow">ONLINE — per query</text>
+
+  <rect x="40" y="352" width="150" height="58" class="box"/>
+  <text x="56" y="376" class="lbl">User query</text>
+  <text x="56" y="393" class="sub">streamlit input</text>
+
+  <rect x="222" y="352" width="150" height="58" class="llm"/>
+  <text x="238" y="370" class="lbl">Preferences</text>
+  <text x="238" y="386" class="sub">gpt-oss-20b → JSON</text>
+  <text x="238" y="400" class="sub">rule fallback</text>
+
+  <rect x="404" y="352" width="150" height="58" class="llm"/>
+  <text x="420" y="370" class="lbl">HyDE probe</text>
+  <text x="420" y="386" class="sub">optional, toggled</text>
+  <text x="420" y="400" class="sub">80-word pseudo-doc</text>
+
+  <rect x="586" y="352" width="150" height="58" class="box"/>
+  <text x="602" y="370" class="lbl">Filtered prefetch</text>
+  <text x="602" y="386" class="sub">dense 20 + sparse 20</text>
+  <text x="602" y="400" class="sub">filter on both branches</text>
+
+  <rect x="768" y="352" width="150" height="58" class="box"/>
+  <text x="784" y="370" class="lbl">Server-side RRF</text>
+  <text x="784" y="386" class="sub">k=60, one round trip</text>
+  <text x="784" y="400" class="sub">city never relaxed</text>
+
+  <path d="M190 381 H218" class="flow"/>
+  <path d="M372 381 H400" class="flow"/>
+  <path d="M554 381 H582" class="flow"/>
+  <path d="M736 381 H764" class="flow"/>
+
+  <!-- row 2 -->
+  <rect x="768" y="450" width="150" height="58" class="llm"/>
+  <text x="784" y="468" class="lbl">Rerank</text>
+  <text x="784" y="484" class="sub">1 batched call</text>
+  <text x="784" y="498" class="sub">score 0–3 each</text>
+  <path d="M843 410 V446" class="flow"/>
+
+  <rect x="586" y="450" width="150" height="58" class="llm"/>
+  <text x="602" y="468" class="lbl">Context judge</text>
+  <text x="602" y="484" class="sub">count first,</text>
+  <text x="602" y="498" class="sub">LLM only if unclear</text>
+  <path d="M764 479 H740" class="flow"/>
+
+  <rect x="404" y="450" width="150" height="58" class="llm"/>
+  <text x="420" y="468" class="lbl">Answer</text>
+  <text x="420" y="484" class="sub">gpt-oss-120b</text>
+  <text x="420" y="498" class="sub">grounded + [n] cites</text>
+  <path d="M582 479 H558" class="flow"/>
+  <text x="566" y="440" class="sub">context_good</text>
+
+  <rect x="222" y="450" width="150" height="58" class="box"/>
+  <text x="238" y="474" class="lbl">Refuse</text>
+  <text x="238" y="491" class="sub">names what's missing</text>
+
+  <rect x="40" y="450" width="150" height="58" class="box"/>
+  <text x="56" y="468" class="lbl">UI + debug panel</text>
+  <text x="56" y="484" class="sub">prefs · chunks · urls</text>
+  <text x="56" y="498" class="sub">stage timings</text>
+  <path d="M400 479 H196" class="flow"/>
+
+  <!-- retry loop -->
+  <path d="M660 508 V552 H860 V512" class="alt"/>
+  <text x="672" y="570" class="sub" fill="#9A6410">context_insufficient → drop category + price filters (keep city), force HyDE, retry once → else refuse</text>
+
+  <path d="M586 479 C540 520, 460 520, 372 490" class="alt"/>
+</svg>

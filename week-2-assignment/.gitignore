@@ -1,0 +1,11 @@
+.env
+data/raw/
+data/corpus.jsonl
+data/tag_cache.json
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.streamlit/secrets.toml
+.DS_Store
+.claude

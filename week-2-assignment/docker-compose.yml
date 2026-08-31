@@ -1,0 +1,151 @@
+# travel-rag: Qdrant, plus the three things that talk to it.
+#
+#   docker compose up -d --build                       qdrant + the UI on :8501
+#   docker compose ps                                   wait for both (healthy)
+#   docker compose logs -f app
+#
+#   docker compose run --rm builder --from-corpus       repopulate from data/corpus.jsonl
+#   docker compose run --rm builder                     full rebuild: scrape + Groq tag + embed
+#   docker compose run --rm ask "cheap eats in Lisbon" --trace
+#
+#   docker compose down       stop, keep the collection and the model cache
+#   docker compose down -v    delete both — the next run re-downloads ~130 MB of weights
+#
+# builder and ask are `profiles: [jobs]`, so `up` never starts them. `compose
+# run` auto-enables a service's own profiles, so no --profile flag is needed.
+#
+# docker-compose.override.yml (auto-loaded) bind-mounts the source back over
+# this image for live reload. `docker compose -f docker-compose.yml up` skips
+# the override and runs the image exactly as it would ship.
+name: travel-rag
+
+# WARNING: YAML merge keys are SHALLOW. A service that re-declares `environment:`
+# REPLACES this block rather than extending it. Forget that and QDRANT_URL
+# silently reverts to localhost inside the container, where nothing is
+# listening. (No service below re-declares it — this is a trap for the next edit.)
+x-app-env: &app-env
+  # Beats .env twice over: compose `environment:` outranks `env_file:`, and
+  # config.py's load_dotenv() defaults to override=False, so a stale
+  # QDRANT_URL=http://localhost:6333 in .env cannot win.
+  QDRANT_URL: http://qdrant:6333
+  # Display only — see config.QDRANT_DASHBOARD_URL. The sidebar renders a
+  # clickable link and http://qdrant:6333 means nothing to a browser on the host.
+  QDRANT_DASHBOARD_URL: ${QDRANT_DASHBOARD_URL:-http://localhost:6333}
+  # Makes config.BUILD_CMD print the compose invocation instead of the venv one.
+  TRAVEL_RAG_IN_CONTAINER: "1"
+  # Both model caches land under one volume, so bge-small (~129 MB) and the
+  # Qdrant/bm25 ONNX (~116 KB) are downloaded once and shared by all three
+  # services. FASTEMBED_CACHE_PATH is read in fastembed/common/utils.py —
+  # no cache_dir argument needed in src/store.py.
+  HF_HOME: /home/app/.cache/huggingface
+  FASTEMBED_CACHE_PATH: /home/app/.cache/fastembed
+  HF_HUB_DISABLE_TELEMETRY: "1"
+
+x-app-service: &app-service
+  build:
+    context: .
+    dockerfile: Dockerfile
+  # Same tag on all three: compose builds it once, the other two are cache hits.
+  image: travel-rag-app:local
+  env_file:
+    # GROQ_API_KEY lives here and only here. .env is in .dockerignore on purpose,
+    # so the key reaches the container at runtime and never enters a layer.
+    - path: .env
+      required: false
+  environment: *app-env
+  volumes:
+    # Read-write: config.py mkdirs data/{,raw} at import, and build_index.py
+    # writes corpus.jsonl, tag_cache.json and data/raw/*.txt. The container
+    # runs as uid 1000, matching the host owner of ./data.
+    - ./data:/app/data
+    - model_cache:/home/app/.cache
+  depends_on:
+    qdrant:
+      condition: service_healthy
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.0
+    container_name: travel-rag-qdrant
+    restart: unless-stopped
+
+    ports:
+      # Bound to loopback on purpose: Qdrant runs with no api-key locally, so
+      # 0.0.0.0 would put an unauthenticated write-capable database on the LAN.
+      - "127.0.0.1:6333:6333"   # REST + /dashboard
+      - "127.0.0.1:6334:6334"   # gRPC
+
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+    environment:
+      # Empty by default. docker compose reads .env from this directory, so if
+      # you ever set QDRANT_API_KEY there it is picked up automatically.
+      # Never write a literal key into this file.
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-}
+      QDRANT__TELEMETRY_DISABLED: "true"
+
+    healthcheck:
+      # The image has no curl or wget (deliberate, upstream considers them a
+      # security surface — qdrant/qdrant#4250 is still open). It does have
+      # bash, so probe /readyz over bash's /dev/tcp. /readyz, not /healthz:
+      # healthz returns 200 as soon as the HTTP server binds, readyz waits
+      # until collections are loaded.
+      test:
+        - CMD
+        - bash
+        - -c
+        - 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf "GET /readyz HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && grep -qm1 "200 OK" <&3'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    # entrypoint.sh traps SIGTERM and forwards it; give the WAL time to flush.
+    stop_grace_period: 30s
+
+  # ---------------------------------------------------------------- the UI
+  app:
+    <<: *app-service
+    container_name: travel-rag-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8501:8501"   # loopback, matching qdrant's convention
+    healthcheck:
+      # Same problem as qdrant (no curl in python:3.12-slim), opposite solution:
+      # python is right there.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3).status==200 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # ---------------------------------------------------------------- jobs
+  # Both are one-shot. `entrypoint` is set and `command` deliberately is not,
+  # so anything after the service name on the compose run line is appended as
+  # argv — this preserves the CLI semantics of the underlying scripts exactly.
+  builder:
+    <<: *app-service
+    profiles: ["jobs"]
+    restart: "no"
+    entrypoint: ["python", "scripts/build_index.py"]
+    # docker compose run --rm builder --from-corpus
+    #   -> python scripts/build_index.py --from-corpus
+    # depends_on waits for qdrant (healthy) first, so build_index.py's
+    # _check_qdrant() fail-fast should never actually fire here.
+
+  ask:
+    <<: *app-service
+    profiles: ["jobs"]
+    restart: "no"
+    entrypoint: ["python", "scripts/ask.py"]
+    # docker compose run --rm ask "3-day Berlin trip with cheap food and art"
+    # docker compose run --rm ask "cheap eats in Lisbon" --no-hyde --trace
+
+volumes:
+  qdrant_storage:
+  model_cache:

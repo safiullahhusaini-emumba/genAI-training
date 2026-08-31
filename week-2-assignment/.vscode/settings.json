@@ -1,0 +1,22 @@
+{
+  // Keep Pylance off the model cache and the FAISS artifacts — it will happily
+  // try to index a few hundred MB of downloaded weights otherwise, which is
+  // what makes the workspace feel like it has stalled.
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.git",
+    "**/.venv",
+    "**/venv",
+    "**/.mypy_cache",
+    "**/data/raw",
+    "**/data/index",
+    "**/*.egg-info"
+  ],
+  "python.analysis.indexing": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "files.watcherExclude": {
+    "**/data/**": true,
+    "**/.venv/**": true
+  }
+}

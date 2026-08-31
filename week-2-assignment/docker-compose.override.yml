@@ -1,0 +1,47 @@
+# Dev overlay, auto-loaded by `docker compose up`. Shadows the baked source
+# with the working tree so edits take effect without a rebuild.
+# `docker compose -f docker-compose.yml up` ignores this file and runs the
+# image exactly as it would ship.
+#
+# Merge semantics that matter here: across files, compose merges `environment`
+# key by key (the base's QDRANT_URL survives alongside the vars added below)
+# and merges `volumes` by container path (this mount is a new target, /app,
+# so it ADDS to the base's ./data and model_cache rather than replacing them —
+# and since /app/data is a deeper path than /app, it nests read-write inside
+# this read-only mount rather than being shadowed by it).
+#
+# Mounting the whole tree, not just app.py/config.py/src/scripts individually,
+# is deliberate: a bind mount of a single FILE pins the inode present at
+# container-start time. Most editors (and this one) save by writing a new
+# file and renaming it over the old path — the container's mount then keeps
+# serving the orphaned old inode until the container is recreated, silently
+# defeating "live" reload. A directory-level mount doesn't have this problem
+# because renames-within-directory are just directory-entry updates the
+# mount's underlying inode sees immediately. Mounting the repo root once
+# sidesteps the issue for every file, present or future.
+x-src-mounts: &src-mounts
+  - ./:/app:ro
+  # Anonymous volume masks .git out of the otherwise-whole-tree mount: it's
+  # irrelevant at runtime and there's no reason to expose it in the container.
+  # (There's no equivalent entry for .venv — the project runs in Docker only
+  # now, and masking a path that doesn't exist on the host under a read-only
+  # parent mount fails: Docker can't create the mountpoint directory for the
+  # anonymous volume without write access to the parent.)
+  - /app/.git
+
+services:
+  app:
+    volumes: *src-mounts
+    environment:
+      STREAMLIT_SERVER_RUN_ON_SAVE: "true"
+      # inotify events do not cross the Docker Desktop VM boundary on macOS
+      # and Windows. On native Linux "auto" is fine; set
+      # STREAMLIT_FILE_WATCHER=poll in .env on those hosts.
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: ${STREAMLIT_FILE_WATCHER:-auto}
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+
+  builder:
+    volumes: *src-mounts
+
+  ask:
+    volumes: *src-mounts
