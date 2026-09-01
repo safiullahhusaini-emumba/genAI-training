@@ -21,13 +21,14 @@
 # sidesteps the issue for every file, present or future.
 x-src-mounts: &src-mounts
   - ./:/app:ro
-  # Anonymous volume masks .git out of the otherwise-whole-tree mount: it's
-  # irrelevant at runtime and there's no reason to expose it in the container.
-  # (There's no equivalent entry for .venv — the project runs in Docker only
-  # now, and masking a path that doesn't exist on the host under a read-only
-  # parent mount fails: Docker can't create the mountpoint directory for the
-  # anonymous volume without write access to the parent.)
-  - /app/.git
+  # No entry masking .git out of this mount: Docker can't nest ANY mount
+  # (volume, tmpfs, bind) inside a parent that's itself :ro — creating the
+  # nested mountpoint means mkdir-ing into the already-mounted read-only
+  # parent, which always fails with EROFS, regardless of what's baked into
+  # the image. (Confirmed: identical error even with /app/.git pre-created
+  # in the image; only dropping :ro on the parent made it mount.) So .git
+  # is just left visible read-only inside the container — harmless, since
+  # nothing in the app reads it — instead of trying to hide it.
 
 services:
   app:
