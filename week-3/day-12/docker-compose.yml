@@ -1,0 +1,32 @@
+# Day 12 runs locally (not Colab): it reuses the Week-2 Qdrant index.
+# Prereq: the Week-2 stack's qdrant container is already up, since this
+# joins its network as an external network.
+#
+#   export GROQ_API_KEY=...        # or put it in week-2-assignment/.env
+#   docker compose up --build      # then open http://127.0.0.1:8888
+#
+# To just execute the notebook end to end and save its outputs:
+#   docker compose run --rm jupyter \
+#     jupyter nbconvert --to notebook --execute --inplace task.ipynb
+
+services:
+  jupyter:
+    build: .
+    image: day12-jupyter:local
+    container_name: day12-jupyter
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: travel_chunks
+      GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in your shell or in week-2-assignment/.env}
+      GROQ_MODEL_FAST: openai/gpt-oss-20b
+    volumes:
+      - ../../:/repo
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - travelrag
+
+networks:
+  travelrag:
+    external: true
+    name: travel-rag_default
