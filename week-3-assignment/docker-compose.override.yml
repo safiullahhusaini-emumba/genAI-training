@@ -1,0 +1,15 @@
+# Auto-loaded by `docker compose up`. Bind-mounts the working tree read-only
+# over the built image so editing api/, src/, or ui/ is picked up live --
+# uvicorn's --reload and Streamlit's own auto-rerun-on-save both watch the
+# filesystem, not the image. `docker compose -f docker-compose.yml up`
+# (explicitly skipping this file) runs the baked image standalone, the way
+# it would ship.
+services:
+  api:
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - .:/app:ro
+
+  ui:
+    volumes:
+      - .:/app:ro

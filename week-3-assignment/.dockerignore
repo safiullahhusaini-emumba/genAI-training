@@ -1,0 +1,22 @@
+.venv/
+venv/
+.git/
+.gitignore
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.example
+README.md
+*.md
+DESIGN-BRIEF.md
+.vscode/
+.claude/
+Dockerfile
+.dockerignore
+docker-compose*.yml
+.DS_Store
+Week 3 Assignment.pdf

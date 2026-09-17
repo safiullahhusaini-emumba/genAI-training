@@ -1,0 +1,93 @@
+# linkedin-curator: two services, one image, built once.
+#
+#   docker compose up -d --build     api on :8000, ui on :8502
+#   docker compose ps                 wait for both (healthy)
+#   docker compose logs -f api
+#
+#   docker compose down               stop everything
+#
+# PORTS: 8000 (api) and 8502 (ui) on the host. 8502 rather than Streamlit's
+# default 8501 because that port is very commonly already taken on a dev
+# machine -- see the note on the ui service's `ports:` below.
+#
+# docker-compose.override.yml (auto-loaded) bind-mounts the source back over
+# this image for live reload. `docker compose -f docker-compose.yml up`
+# skips the override and runs the image exactly as it would ship.
+name: linkedin-curator
+
+x-app-service: &app-service
+  build:
+    context: .
+    dockerfile: Dockerfile
+  # Same tag on both services: compose builds it once, the second is a cache hit.
+  image: linkedin-curator-app:local
+  env_file:
+    # All four API keys live here and only here. .env is in .dockerignore,
+    # so a key reaches the container at runtime and never enters a layer.
+    - path: .env
+      required: false
+  environment:
+    # Makes config.API_FIX_CMD print the compose invocation instead of the
+    # bare-uvicorn one when the UI can't reach the API. See config.py.
+    # NOTE: YAML merge keys are SHALLOW -- a service that re-declares
+    # `environment:` REPLACES this block rather than extending it. The ui
+    # service below does exactly that, so it repeats this key deliberately.
+    CURATOR_IN_CONTAINER: "1"
+
+services:
+  api:
+    <<: *app-service
+    container_name: linkedin-curator-api
+    restart: unless-stopped
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      # Loopback-bound: this is a local training assignment, not a service
+      # meant to be reachable from the LAN.
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      # No curl in python:3.12-slim; python is already in the image.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status==200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  ui:
+    <<: *app-service
+    container_name: linkedin-curator-ui
+    restart: unless-stopped
+    command: ["streamlit", "run", "ui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+    environment:
+      # Inside the compose network the UI reaches the API by service name;
+      # on the host (bare `streamlit run`) config.py's own default of
+      # localhost applies instead -- compose sets this explicitly rather
+      # than the value being guessed at runtime.
+      API_BASE_URL: http://api:8000
+      # Repeated, not inherited: re-declaring `environment:` REPLACES the
+      # anchor's block rather than merging with it (see the note on x-app-service).
+      CURATOR_IN_CONTAINER: "1"
+    ports:
+      # Host 8502, container 8501. Deliberately NOT 8501 on the host: that
+      # is Streamlit's default, so it is frequently already bound by another
+      # app on a developer machine, and a port clash at `up` time is an
+      # annoying first impression. Only the host side moves -- inside the
+      # container Streamlit still listens on its own 8501, so nothing else
+      # (healthcheck, API_BASE_URL) has to change.
+      - "127.0.0.1:8502:8501"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3).status==200 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      api:
+        condition: service_healthy

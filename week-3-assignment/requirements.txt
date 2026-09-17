@@ -1,0 +1,24 @@
+# Versions pinned to what was verified working during development -- each pin
+# exists so a rebuild doesn't silently pick up a breaking change from an
+# unrelated library.
+
+# LLM orchestration
+langchain-core==1.6.3
+langchain-groq==1.1.3          # exposes reasoning_effort/reasoning_format as native ChatGroq fields
+groq==0.37.1                   # transitive dep of langchain-groq; pinned so it doesn't drift independently
+python-dotenv==1.0.1
+
+# search tools
+tavily-python==0.8.3           # web_search
+ddgs==9.16.0                   # social_search -- formerly duckduckgo-search, renamed upstream
+
+# image generation
+httpx==0.28.1                  # async client for Cloudflare + Pollinations
+pillow==12.3.0                 # the local_card fallback tier
+
+# API + UI
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+sse-starlette==3.4.11          # /execute/stream
+streamlit==1.64.0
+pydantic==2.13.5                # plan schema, tool arg schemas, structured LLM output
