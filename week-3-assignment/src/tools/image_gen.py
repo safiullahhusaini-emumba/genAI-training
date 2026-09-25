@@ -1,8 +1,7 @@
-"""image_generator -- the assignment's "Image Generation Tool": generate a
-visual matching the topic.
+"""image_generator -- generate a visual matching the topic.
 
-Three-tier fallback ladder, each tried only if the
-previous one failed, so the demo can never show a broken image even offline:
+Three-tier fallback ladder, each tried only if the previous one failed, so
+the UI can never show a broken image even offline:
   1. Cloudflare Workers AI, FLUX.1-schnell -- 10k neurons/day free, no card,
      confirmed live during design (HTTP 200, ~3s, good output).
   2. Pollinations.ai -- keyless GET, no signup, but ~1 req/15s anonymously

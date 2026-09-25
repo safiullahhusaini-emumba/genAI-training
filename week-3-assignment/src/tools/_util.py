@@ -8,11 +8,11 @@ from src.types import StepResult
 
 
 def tool_ok(**payload) -> dict:
-    """Every tool returns a dict with an explicit "ok" key -- this is the
-    "structured output" half of the assignment's "each tool must ... return
-    structured output" requirement, and it's how the executor tells a tool's
-    own considered decision (e.g. "refusing, no source material") apart from
-    an unhandled exception, without inspecting error strings."""
+    """Every tool returns a dict with an explicit "ok" key -- the structured
+    output contract every tool in the registry honours, and how the executor
+    tells a tool's own considered decision (e.g. "refusing, no source
+    material") apart from an unhandled exception, without inspecting error
+    strings."""
     payload.setdefault("ok", True)
     return payload
 
@@ -36,9 +36,8 @@ def material_and_flags(deps: dict[int, StepResult]) -> tuple[str, list[str]]:
     """Pull usable source text out of whatever dependencies fed a step,
     whichever shape they're in -- summarizer's {"points": [...]} or a raw
     search tool's {"results": [...]}. This lets content_generator sit
-    downstream of either the default plan (summarizer in between) or the
-    assignment's own literal example plan (generator wired straight to the
-    two search steps) without caring which.
+    downstream of either the default plan (summarizer in between) or a flatter
+    one (generator wired straight to the two search steps) without caring which.
 
     Returns (material_text, degraded_tool_names). A dependency counts as
     "degraded" if it failed outright OR succeeded with nothing usable --

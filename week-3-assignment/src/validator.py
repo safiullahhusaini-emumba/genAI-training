@@ -1,10 +1,8 @@
 """Deterministic repair of whatever the Planner Agent returns. An LLM-written
 DAG fails in a small, repeatable set of ways -- this module is the
 non-negotiable safety net between "the planner said so" and "the executor
-runs it". Every repair is recorded as a note that
-ends up in the trace, so the debug panel shows exactly what the planner got
-wrong on a given run (this is also where the README's required "one failure
-case you observed" comes from).
+runs it". Every repair is recorded as a note that ends up in the trace, so
+the debug panel shows exactly what the planner got wrong on a given run.
 
 Failure modes handled here, each independently triggerable for testing:
   - hallucinated tool name              -> drop the step
@@ -12,6 +10,7 @@ Failure modes handled here, each independently triggerable for testing:
   - duplicate step ids                  -> renumber (first occurrence wins)
   - a dependency cycle                  -> reject the whole plan, use DEFAULT_PLAN
   - missing content_generator/_editor   -> inject them at the end
+  - missing image_generator             -> inject it with depends_on: []
   - too many steps                      -> reject the whole plan, use DEFAULT_PLAN
 
 Two more failure modes -- syntactically invalid JSON, and an empty/garbage
@@ -84,6 +83,12 @@ def validate_and_repair(raw: Plan) -> tuple[Plan, list[str]]:
     tool_to_id: dict[str, int] = {}
     for s in new_steps:
         tool_to_id.setdefault(s.tool, s.step)
+
+    if IMAGE_TOOL not in tool_to_id:
+        img_id = len(new_steps) + 1
+        new_steps.append(Step(step=img_id, tool=IMAGE_TOOL, depends_on=[], args={}))
+        tool_to_id[IMAGE_TOOL] = img_id
+        notes.append("planner omitted image_generator; injected it depending on nothing (runs from the topic)")
 
     if GENERATOR_TOOL not in tool_to_id:
         gen_id = len(new_steps) + 1

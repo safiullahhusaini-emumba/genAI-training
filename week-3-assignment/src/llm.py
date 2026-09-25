@@ -1,7 +1,7 @@
 """The one place every LLM call in this project goes through.
 
-Wraps langchain_groq.ChatGroq -- the assignment requires LangChain, and this is
-the one file where that requirement actually touches the code; everything
+Wraps langchain_groq.ChatGroq. LangChain is the orchestration layer here, and
+this is the one file where it actually touches the code; everything
 downstream of here (planner, tools, generator, editor) just calls chat()/chat_json().
 Keeping it to a single choke point means retry/parsing/fallback behaviour is
 defined once instead of drifting per caller.

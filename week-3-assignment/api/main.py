@@ -1,9 +1,5 @@
-"""FastAPI backend agent orchestration. Deliverable endpoints: /plan and
-/execute. /execute/stream is an addition on top -- SSE so the UI can tick
-each tool green as it finishes -- but /execute alone
-already satisfies the assignment's stated contract on its own with a plain
-JSON response, and both endpoints work with no UI involved at all (curl
-examples are in README.md).
+"""FastAPI backend for the agent orchestration. Both endpoints, /plan and
+/execute, work with no UI involved at all (curl examples are in README.md).
 """
 
 from __future__ import annotations
@@ -33,7 +29,7 @@ from src.validator import validate_and_repair
 app = FastAPI(title="Agentic LinkedIn Content Curator")
 
 # The UI is a separate origin (its own container/port) in the compose setup.
-# This is a local training-assignment API, not a public one, so a wide-open
+# This is a local development API, not a public one, so a wide-open
 # CORS policy is a reasonable simplification -- narrowing it to the UI's
 # actual origin would be the first change before this touched real users.
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])

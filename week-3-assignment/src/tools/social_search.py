@@ -1,10 +1,10 @@
 """social_search -- DDGS, restricted to platforms where people discuss a topic
-informally. The assignment's example plan names "x_search_api", but the real
-X API v2 search endpoint is paid (~$200/mo) and out of reach here.
-This is the honest substitute: no key, no signup, and it
-genuinely returns a different flavour of material than web_search -- opinion
-and discussion threads rather than articles -- which is the whole point of
-running it as a second, independent tool in the same parallel wave.
+informally. A dedicated X/Twitter search would be the natural fit, but the
+real X API v2 search endpoint is paid (~$200/mo) and out of reach here. This
+is the honest substitute: no key, no signup, and it genuinely returns a
+different flavour of material than web_search -- opinion and discussion
+threads rather than articles -- which is the whole point of running it as a
+second, independent tool in the same parallel wave.
 """
 
 from __future__ import annotations

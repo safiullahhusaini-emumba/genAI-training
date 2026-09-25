@@ -5,5 +5,8 @@ __pycache__/
 *.pyo
 .pytest_cache/
 
-# Personal working notes, not part of the deliverable.
+# Personal working notes, not part of the project.
 DESIGN-BRIEF.md
+WALKTHROUGH.md
+BACKEND.md
+asyncio_lab.py

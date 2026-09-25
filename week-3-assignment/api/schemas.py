@@ -1,4 +1,4 @@
-"""Request/response models for the two required endpoints. Kept separate from
+"""Request/response models for the two core endpoints. Kept separate from
 src.plan_schema so the wire format (what a client POSTs/receives) can evolve
 independently of the internal Plan representation the executor consumes."""
 
@@ -23,8 +23,8 @@ class ExecuteRequest(BaseModel):
     topic: str
     # Optional: the two-call UI flow calls /plan first, lets the user
     # edit the DAG, then POSTs that exact plan here. If omitted, /execute
-    # plans internally -- both endpoints stay independently callable, which
-    # the assignment requires.
+    # plans internally -- both endpoints stay independently callable, and
+    # neither one depends on the other having been called first.
     plan: Plan | None = None
 
 

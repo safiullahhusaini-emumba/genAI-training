@@ -1,12 +1,12 @@
-"""web_search -- Tavily. The assignment's "google_search_api" slot: discover
-recent, relevant content on the topic.
+"""web_search -- Tavily. The general web-discovery tool: find recent,
+relevant content on the topic.
 
 Configuration for topic/search_depth is fixed in config.py, not exposed as a
-planner argument, because measurement showed
-topic="news" starves technical queries (1 result, score 0.15, on the
-assignment's own example topic) while topic="general"+advanced does not.
-time_range IS a planner argument -- the one axis where the right answer
-genuinely depends on what the topic is asking for.
+planner argument, because measurement showed topic="news" starves technical
+queries (1 result, score 0.15, on a representative technical topic) while
+topic="general"+advanced does not. time_range IS a planner argument -- the
+one axis where the right answer genuinely depends on what the topic is
+asking for.
 """
 
 from __future__ import annotations

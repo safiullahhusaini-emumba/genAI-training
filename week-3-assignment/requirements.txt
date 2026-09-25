@@ -21,4 +21,4 @@ fastapi==0.141.1
 uvicorn[standard]==0.53.0
 sse-starlette==3.4.11          # /execute/stream
 streamlit==1.64.0
-pydantic==2.13.5                # plan schema, tool arg schemas, structured LLM output
+pydantic==2.13.5               # plan schema, tool arg schemas, structured LLM output

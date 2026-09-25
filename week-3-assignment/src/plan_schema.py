@@ -1,6 +1,6 @@
 """The plan artifact: what the Planner Agent produces and the executor consumes.
 
-This is deliverable #2 ("Planner output schema") on its own -- kept in one small
+The planner's output schema lives here on its own -- kept in one small
 file with no LLM code in it, so the shape of a plan is auditable independent of
 how one gets produced.
 """
@@ -31,8 +31,9 @@ class Plan(BaseModel):
 
 # The deterministic fallback, following this project's rule that every LLM
 # decision has a non-LLM answer it can fall back to. Used when the planner
-# returns garbage the validator can't repair -- see src/validator.py. This is
-# exactly the assignment's own example plan.
+# returns garbage the validator can't repair -- see src/validator.py. It is the
+# most generally useful shape: search both sources, condense, write, edit,
+# with the image on its own parallel branch.
 DEFAULT_PLAN = Plan(
     steps=[
         Step(step=1, tool="web_search", depends_on=[], args={}),

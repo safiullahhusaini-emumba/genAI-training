@@ -19,4 +19,4 @@ Dockerfile
 .dockerignore
 docker-compose*.yml
 .DS_Store
-Week 3 Assignment.pdf
+*.pdf

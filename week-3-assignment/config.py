@@ -36,7 +36,7 @@ REASONING_FORMAT = "hidden"
 # --- Tavily (web search) --------------------------------------------------------
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 
-# Measured against the assignment's own example query before picking these.
+# Measured against a representative technical query before picking these.
 # topic="news" restricts to news-wire content and returned 1 result at score
 # 0.15 for "recent trends in GenAI agents for backend engineers" -- a
 # technical-trend query is not news-wire. topic="general"
@@ -53,7 +53,7 @@ TAVILY_DEFAULT_TIME_RANGE = "month"
 TAVILY_MAX_RESULTS = 6
 
 # --- DDGS (social/discussion search) --------------------------------------------
-# The assignment's example plan names "x_search_api", but the real X API v2
+# A dedicated X/Twitter search would be the natural fit, but the real X API v2
 # search endpoint is paid (~$200/mo) -- not usable here. This is the honest
 # substitute: DDGS needs no key at all, restricted to platforms where people
 # actually discuss a topic in public, informal terms search engines rank differently.

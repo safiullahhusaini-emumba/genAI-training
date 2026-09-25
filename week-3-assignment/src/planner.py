@@ -22,15 +22,18 @@ Available tools:
 
 Rules:
 - Every plan must end with content_generator, then content_editor depending on it.
+- Every plan must include exactly one image_generator step, whatever the topic --
+  every post needs an image. Skipping research never means skipping the image.
 - image_generator normally has depends_on: [] (it starts immediately, in parallel
   with search, using just the topic) -- this is faster. Only make it depend on
   content_generator's step if the topic's visual angle genuinely can't be
   determined without the finished post (e.g. the post's angle is a surprising
   contrarian take that the raw topic string doesn't convey).
 - If the topic is personal opinion, a personal story, or otherwise not something
-  that benefits from web material (e.g. "why I left consulting"), you may skip
+  that benefits from web material (e.g. a career lesson or a personal take), you may skip
   web_search and social_search entirely and wire content_generator directly to
-  nothing (depends_on: []) -- do not search just because tools exist.
+  nothing (depends_on: []) -- do not search just because tools exist. Still
+  include image_generator.
 - If the topic needs recent material, pick web_search's time_range based on how
   fast-moving the topic is: "month" or "week" for fast-moving tech trends,
   "year" or omitted for evergreen/how-to topics.
@@ -39,16 +42,6 @@ Rules:
 - At most {MAX_PLAN_STEPS} steps.
 
 Respond with a JSON object: {{"steps": [{{"step": int, "tool": str, "depends_on": [int], "args": {{}}}}]}}
-
-Example for "recent trends in GenAI agents for backend engineers":
-{{"steps": [
-  {{"step": 1, "tool": "web_search", "depends_on": [], "args": {{"time_range": "month"}}}},
-  {{"step": 2, "tool": "social_search", "depends_on": [], "args": {{}}}},
-  {{"step": 3, "tool": "summarizer", "depends_on": [1, 2], "args": {{}}}},
-  {{"step": 4, "tool": "content_generator", "depends_on": [3], "args": {{}}}},
-  {{"step": 5, "tool": "content_editor", "depends_on": [4], "args": {{}}}},
-  {{"step": 6, "tool": "image_generator", "depends_on": [], "args": {{}}}}
-]}}
 
 Known tool names, exactly: {", ".join(tool_names())}
 """

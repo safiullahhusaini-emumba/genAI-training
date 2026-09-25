@@ -1,8 +1,8 @@
-"""summarizer -- the assignment's "Summarization Tool": condense raw articles
-into key points. Sits between the two search tools and the Generator Agent in
-the default plan, but is registered like any other tool so the planner is
-free to wire it in differently (or skip it and point content_generator
-straight at the raw search steps, as the assignment's own example plan does).
+"""summarizer -- condense raw articles and discussion threads into key
+points. Sits between the two search tools and the Generator Agent in the
+default plan, but is registered like any other tool so the planner is free
+to wire it in differently (or skip it and point content_generator straight
+at the raw search steps).
 """
 
 from __future__ import annotations

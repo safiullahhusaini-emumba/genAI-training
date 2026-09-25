@@ -1,11 +1,11 @@
 """content_editor -- the Editor Agent. Critiques the generator's draft, then
 rewrites it addressing the critique.
 
-Split into two calls, each on the model that fits:
-the critique is a *decision* (what's wrong) so it uses MODEL_FAST; the
-rewrite is *what the user reads*, the second and final thing that is, so it
-uses MODEL_SMART. This also gives the debug panel something to show that a
-single "improve this" rewrite couldn't: a numbered list of what changed and why.
+Split into two calls, each on the model that fits: the critique is a
+*decision* (what's wrong) so it uses MODEL_FAST; the rewrite is *what the
+user reads*, the second and final thing that is, so it uses MODEL_SMART.
+This also gives the debug panel something to show that a single "improve
+this" rewrite couldn't: a numbered list of what changed and why.
 """
 
 from __future__ import annotations

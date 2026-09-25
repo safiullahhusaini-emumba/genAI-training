@@ -1,11 +1,10 @@
-"""Streamlit UI (client only -- no LinkedIn posting, per the assignment).
+"""Streamlit UI -- a drafting client only; it does not post to LinkedIn.
 
-Flow: topic -> POST /plan -> render the DAG as an
-editable checklist -> POST /execute/stream -> tools tick live as they finish
--> final post, image, and a debug panel. The two-call shape means the plan is
-visible, and editable, before anything expensive runs -- which is also the
-single clearest way to demonstrate that the planner's decision is real and
-not decorative.
+Flow: topic -> POST /plan -> render the DAG as an editable checklist -> POST
+/execute/stream -> tools tick live as they finish -> final post, image, and a
+debug panel. The two-call shape means the plan is visible, and editable,
+before anything expensive runs -- which is also the single clearest way to
+show that the planner's decision is real and not decorative.
 """
 
 from __future__ import annotations
